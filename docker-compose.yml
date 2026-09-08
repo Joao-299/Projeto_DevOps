@@ -1,0 +1,9 @@
+services:
+  tarefas:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - tarefas_data:/app/instance
+volumes:
+  tarefas_data:
