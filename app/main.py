@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
@@ -70,6 +70,17 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)):
 def read_items(db: Session = Depends(get_db)):
     return db.query(ItemModel).all()
 
+# NOVO ENDPOINT: Deletar item pelo ID
+@app.delete("/api/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_item(item_id: int, db: Session = Depends(get_db)):
+    db_item = db.query(ItemModel).filter(ItemModel.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item não encontrado")
+    
+    db.delete(db_item)
+    db.commit()
+    return None
+
 # --- Interface Web Visual Completa (Frontend Integrado) ---
 
 @app.get("/", response_class=HTMLResponse)
@@ -90,11 +101,13 @@ def home_page():
             .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
             input[type="text"] { flex: 1; padding: 12px; border: 1px solid #dadce0; border-radius: 6px; font-size: 14px; outline: none; }
             input[type="text"]:focus { border-color: #1a73e8; }
-            button { background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-            button:hover { background: #1557b0; }
+            button.btn-add { background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+            button.btn-add:hover { background: #1557b0; }
             ul { list-style: none; padding: 0; margin: 0; }
             li { background: #f8f9fa; border: 1px solid #e8eaed; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-            .badge { background: #e6f4ea; color: #137333; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 12px; }
+            .item-actions { display: flex; align-items: center; gap: 8px; }
+            .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: background 0.2s; }
+            .btn-delete:hover { background: #bd2130; }
             .footer-link { text-align: center; margin-top: 20px; font-size: 13px; }
             .footer-link a { color: #1a73e8; text-decoration: none; }
         </style>
@@ -106,7 +119,7 @@ def home_page():
             
             <form id="itemForm" class="form-group">
                 <input type="text" id="itemTitle" placeholder="Digite uma nova tarefa..." required>
-                <button type="submit">Adicionar</button>
+                <button type="submit" class="btn-add">Adicionar</button>
             </form>
 
             <ul id="itemsList"></ul>
@@ -126,7 +139,12 @@ def home_page():
                 list.innerHTML = '';
                 items.forEach(item => {
                     const li = document.createElement('li');
-                    li.innerHTML = `<span>${item.title}</span> <span class="badge">Salvo no BD</span>`;
+                    li.innerHTML = `
+                        <span>${item.title}</span>
+                        <div class="item-actions">
+                            <button class="btn-delete" onclick="deleteItem(${item.id})">Apagar</button>
+                        </div>
+                    `;
                     list.appendChild(li);
                 });
             }
@@ -145,6 +163,13 @@ def home_page():
                 input.value = '';
                 loadItems();
             });
+
+            async function deleteItem(id) {
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                loadItems();
+            }
 
             loadItems();
         </script>
