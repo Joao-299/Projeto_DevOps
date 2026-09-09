@@ -1,67 +1,66 @@
 # Projeto_DevOps
 
 Markdown
-# Projeto DevOps - API Flask com CI/CD
+# Projeto DevOps - Disciplina Integração DevOps
 
-[![CI Pipeline](https://github.com/Joao-299/Projeto_DevOps/actions/workflows/ci.yml/badge.svg)](https://github.com/Joao-299/Projeto_DevOps/actions/workflows/ci.yml)
+Aplicação desenvolvida para a disciplina de Integração DevOps. O projeto consiste em uma API REST desenvolvida em Python com **FastAPI**, persistência de dados em **SQLite** e uma interface web interativa.
 
-Este repositório contém a entrega do projeto prático de DevOps. O objetivo principal do projeto é demonstrar a integração entre o desenvolvimento de uma aplicação web simples, a criação de testes unitários e a implementação de uma esteira de Integração Contínua (CI) automatizada.
+---
 
 ## 🛠️ Tecnologias Utilizadas
 
-*   **Python 3.9:** Linguagem principal do projeto.
-*   **Flask:** Micro-framework utilizado para a construção da API REST.
-*   **Pytest:** Framework utilizado para a estruturação e execução dos testes unitários.
-*   **GitHub Actions:** Plataforma de CI/CD utilizada para automatizar a validação do código.
+* **Linguagem:** Python 3.10
+* **Framework Web:** FastAPI (com Jinja2 para a interface HTML)
+* **Banco de Dados:** SQLite (via SQLAlchemy ORM)
+* **Testes Automatizados:** Pytest & HTTPX
+* **CI/CD Pipeline:** GitHub Actions
 
-## 📂 Estrutura do Repositório
+---
 
-O projeto foi organizado com a seguinte estrutura de diretórios:
+## 🚀 Como Executar o Projeto Localmente
 
-```text
-.
-├── .github/
-│   └── workflows/
-│       └── ci.yml         # Configuração da esteira de Integração Contínua
-├── app/
-│   └── main.py            # Código-fonte da API Flask
-└── tests/
-    └── test_app.py        # Testes unitários da aplicação
-🚀 Como Executar o Projeto Localmente
-1. Clonar o repositório
-Bash
-git clone [https://github.com/Joao-299/Projeto_DevOps.git](https://github.com/Joao-299/Projeto_DevOps.git)
-cd Projeto_DevOps
-2. Instalar as dependências
-Certifique-se de ter o Python instalado e execute:
+### 1. Pré-requisitos
+Certifique-se de ter o Python 3.10+ instalado em sua máquina.
 
-Bash
-pip install flask pytest
-3. Iniciar a API
-Bash
-python app/main.py
-A API estará disponível no endereço http://localhost:5000/. Ao acessar a rota raiz (/), você receberá a seguinte resposta em formato JSON:
+### 2. Clonar o Repositório
+```bash
+git clone [https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git](https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git)
+cd SEU-REPOSITORIO
+3. Configurar o Ambiente Virtual
+Windows:
 
-JSON
-{
-  "message": "API DevOps funcionando!"
-}
-🧪 Como Executar os Testes
-Para garantir que a aplicação está funcionando conforme o esperado, o projeto conta com testes automatizados. Para rodá-los localmente, utilize o comando:
+PowerShell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+Linux/Mac:
 
 Bash
-python -m pytest tests/
-⚙️ Integração Contínua (CI)
-Este projeto utiliza o GitHub Actions para garantir a qualidade contínua do código. A esteira foi configurada no arquivo ci.yml e é acionada automaticamente sempre que há um push ou pull_request para a branch main.
+python -m venv venv
+source venv/bin/activate
+4. Instalar Dependências
+Bash
+pip install -r requirements.txt
+5. Executar a Aplicação
+Bash
+uvicorn app.main:app --reload
+Acesse no seu navegador:
 
-O pipeline realiza os seguintes passos:
+Interface Web: http://127.0.0.1:8000
 
-Provisiona uma máquina virtual com Ubuntu (ubuntu-latest).
+Documentação Swagger: http://127.0.0.1:8000/docs
 
-Faz o checkout do código do repositório.
+🧪 Como Executar os Testes Automatizados
+Para rodar a suíte de testes do Pytest localmente:
 
-Configura o ambiente com o Python 3.9.
+Bash
+pytest
+⚙️ Pipeline de Integração Contínua (CI)
+O projeto possui uma pipeline automatizada no GitHub Actions (.github/workflows/ci.yml) que é disparada a cada Push ou Pull Request na branch main. A pipeline realiza as seguintes etapas:
 
-Instala as dependências necessárias (flask e pytest).
+Checkout do código-fonte.
 
-Executa a suíte de testes automaticamente com o comando python -m pytest tests/.
+Configuração do ambiente Python.
+
+Instalação automatizada das dependências.
+
+Execução dos testes unitários e de integração com o pytest.
