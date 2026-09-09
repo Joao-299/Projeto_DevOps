@@ -7,7 +7,7 @@ Aplicação desenvolvida para a disciplina de Integração DevOps. O projeto con
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 
 * **Linguagem:** Python 3.10
 * **Framework Web:** FastAPI (com Jinja2 para a interface HTML)
@@ -17,7 +17,7 @@ Aplicação desenvolvida para a disciplina de Integração DevOps. O projeto con
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+##  Como Executar o Projeto Localmente
 
 ### 1. Pré-requisitos
 Certifique-se de ter o Python 3.10+ instalado em sua máquina.
@@ -49,12 +49,12 @@ Interface Web: http://127.0.0.1:8000
 
 Documentação Swagger: http://127.0.0.1:8000/docs
 
-🧪 Como Executar os Testes Automatizados
+ Como Executar os Testes Automatizados
 Para rodar a suíte de testes do Pytest localmente:
 
 Bash
 pytest
-⚙️ Pipeline de Integração Contínua (CI)
+ Pipeline de Integração Contínua (CI)
 O projeto possui uma pipeline automatizada no GitHub Actions (.github/workflows/ci.yml) que é disparada a cada Push ou Pull Request na branch main. A pipeline realiza as seguintes etapas:
 
 Checkout do código-fonte.
