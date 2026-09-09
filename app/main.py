@@ -1,6 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException, Request, Form
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
@@ -18,7 +17,6 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Modelo de Tabela no Banco
 class ItemModel(Base):
     __tablename__ = "items"
 
@@ -26,10 +24,8 @@ class ItemModel(Base):
     title = Column(String, index=True)
     completed = Column(Boolean, default=False)
 
-# Cria as tabelas automaticamente
 Base.metadata.create_all(bind=engine)
 
-# Dependency para obter a sessão do banco
 def get_db():
     db = SessionLocal()
     try:
@@ -38,7 +34,7 @@ def get_db():
         db.close()
 
 # -------------------------------------------------------------------
-# 2. Schemas Pydantic (Validação de Dados)
+# 2. Schemas Pydantic
 # -------------------------------------------------------------------
 class ItemCreate(BaseModel):
     title: str
@@ -54,13 +50,8 @@ class ItemResponse(BaseModel):
 # -------------------------------------------------------------------
 # 3. Aplicação FastAPI e Endpoints
 # -------------------------------------------------------------------
-app = FastAPI(
-    title="Projeto DevOps - API e Interface",
-    description="Aplicação com banco de dados SQLite e interface Web interativa.",
-    version="1.0.0"
-)
+app = FastAPI(title="Projeto DevOps - Interface Completa")
 
-# Rota Básica / Healthcheck
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
@@ -79,7 +70,7 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)):
 def read_items(db: Session = Depends(get_db)):
     return db.query(ItemModel).all()
 
-# --- Interface Web (HTML Simples) ---
+# --- Interface Web Visual Completa (Frontend Integrado) ---
 
 @app.get("/", response_class=HTMLResponse)
 def home_page():
@@ -88,21 +79,75 @@ def home_page():
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
-        <title>Projeto DevOps</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Painel de Controle - DevOps</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
-            h1 { color: #333; }
-            .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 500px; }
-            a { color: #0066cc; text-decoration: none; font-weight: bold; }
+            * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+            body { background-color: #f0f2f5; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+            .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+            h1 { color: #1a73e8; font-size: 24px; margin-bottom: 8px; text-align: center; }
+            p.subtitle { color: #5f6368; text-align: center; font-size: 14px; margin-bottom: 24px; }
+            .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
+            input[type="text"] { flex: 1; padding: 12px; border: 1px solid #dadce0; border-radius: 6px; font-size: 14px; outline: none; }
+            input[type="text"]:focus { border-color: #1a73e8; }
+            button { background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+            button:hover { background: #1557b0; }
+            ul { list-style: none; padding: 0; margin: 0; }
+            li { background: #f8f9fa; border: 1px solid #e8eaed; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+            .badge { background: #e6f4ea; color: #137333; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 12px; }
+            .footer-link { text-align: center; margin-top: 20px; font-size: 13px; }
+            .footer-link a { color: #1a73e8; text-decoration: none; }
         </style>
     </head>
     <body>
-        <div class="card">
-            <h1>Projeto DevOps - Integração CI/CD</h1>
-            <p>Sua aplicação com banco de dados SQLite está rodando com sucesso!</p>
-            <p>Acesse a <strong>Interface de Testes/Documentação (Swagger):</strong></p>
-            <a href="/docs" target="_blank">👉 Abrir Interface Interativa (/docs)</a>
+        <div class="container">
+            <h1>Projeto DevOps</h1>
+            <p class="subtitle">Gerenciador de Tarefas Integrado ao SQLite</p>
+            
+            <form id="itemForm" class="form-group">
+                <input type="text" id="itemTitle" placeholder="Digite uma nova tarefa..." required>
+                <button type="submit">Adicionar</button>
+            </form>
+
+            <ul id="itemsList"></ul>
+
+            <div class="footer-link">
+                <a href="/docs" target="_blank">Documentação Swagger da API ➔</a>
+            </div>
         </div>
+
+        <script>
+            const API_URL = '/api/items';
+
+            async function loadItems() {
+                const res = await fetch(API_URL);
+                const items = await res.json();
+                const list = document.getElementById('itemsList');
+                list.innerHTML = '';
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${item.title}</span> <span class="badge">Salvo no BD</span>`;
+                    list.appendChild(li);
+                });
+            }
+
+            document.getElementById('itemForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const input = document.getElementById('itemTitle');
+                const title = input.value;
+                
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title })
+                });
+
+                input.value = '';
+                loadItems();
+            });
+
+            loadItems();
+        </script>
     </body>
     </html>
     """
