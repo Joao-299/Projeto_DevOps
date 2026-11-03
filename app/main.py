@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
@@ -9,8 +10,8 @@ from pydantic import BaseModel
 # -------------------------------------------------------------------
 # 1. Configuração do Banco de Dados (SQLite)
 # -------------------------------------------------------------------
-SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
 
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
@@ -54,8 +55,13 @@ app = FastAPI(title="Projeto DevOps - Interface Completa")
 
 @app.get("/health")
 def health_check():
+    if os.getenv("SIMULATE_FAILURE", "false").lower() == "true":
+        raise HTTPException(status_code=503, detail="Falha simulada")
     return {"status": "healthy"}
 
+@app.get("/version")
+def version():
+    return {"version": os.getenv("APP_VERSION", "dev")}
 # --- Endpoints da API REST ---
 
 @app.post("/api/items", response_model=ItemResponse, status_code=201)
