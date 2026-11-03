@@ -64,3 +64,5 @@ Configuração do ambiente Python.
 Instalação automatizada das dependências.
 
 Execução dos testes unitários e de integração com o pytest.
+
+Versão 1.1.0
