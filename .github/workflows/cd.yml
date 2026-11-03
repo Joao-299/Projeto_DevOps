@@ -1,0 +1,96 @@
+name: CD
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/joao-299/projeto_devops
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - run: pip install -r requirements.txt
+      - run: python -m pytest tests/
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: APP_VERSION=${{ steps.meta.outputs.version }}
+
+  deploy-staging:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy em staging (simulado)
+        id: deploy
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Fazendo deploy da versão $VERSION"
+          docker run -d --name app -p 8000:8000 \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            -e SIMULATE_FAILURE="${{ vars.SIMULATE_FAILURE }}" \
+            $IMAGE:$VERSION
+          for i in $(seq 1 10); do
+            if curl -sf http://localhost:8000/health; then
+              echo "Deploy OK: $(curl -s http://localhost:8000/version)"
+              exit 0
+            fi
+            sleep 3
+          done
+          docker logs app
+          exit 1
+
+      - name: Rollback automático
+        if: failure() && steps.deploy.outcome == 'failure'
+        run: |
+          PREV=$(git tag --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1)
+          PREV=${PREV#v}
+          echo "Deploy falhou. Voltando para a versão $PREV"
+          docker rm -f app
+          docker run -d --name app -p 8000:8000 \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            $IMAGE:$PREV
+          sleep 5
+          curl -sf http://localhost:8000/health
+          echo "Rollback concluído: $(curl -s http://localhost:8000/version)"
