@@ -16,7 +16,15 @@ def test_create_and_read_item():
     assert data["title"] == "Testar Pipeline CI"
     assert "id" in data
 
+def test_version():
+    response = client.get("/version")
+    assert response.status_code == 200
+    assert "version" in response.json()
+   
+   
     # Testa a listagem
     response = client.get("/api/items")
     assert response.status_code == 200
     assert len(response.json()) > 0
+
+    
