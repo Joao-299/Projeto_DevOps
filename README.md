@@ -66,3 +66,30 @@ Instalação automatizada das dependências.
 Execução dos testes unitários e de integração com o pytest.
 
 Versão 1.1.1
+
+## Docker
+
+Imagem multi-stage (`python:3.10-slim`), usuário não-root e healthcheck em `/health`.
+
+    docker build -t projeto_devops .
+
+## Docker Compose
+
+    copy .env.example .env
+    docker compose up --build
+
+O banco SQLite fica no volume `db_data`, então os dados sobrevivem ao reinício do container.
+
+## CD (GitHub Actions)
+
+Ao enviar uma tag `vX.Y.Z`, o workflow `cd.yml` roda os testes, publica a imagem no GHCR (`ghcr.io/joao-299/projeto_devops`) e faz o deploy simulado em staging.
+
+## Segredos e variáveis
+
+- `DATABASE_URL`: secret do Environment `staging`.
+- `SIMULATE_FAILURE`: variável do repositório (`true` provoca falha de propósito).
+- `.env` fica fora do Git; `.env.example` mostra as variáveis necessárias.
+
+## Versionamento e rollback
+
+Versionamento semântico (`v1.0.0`, `v1.1.0`, `v1.1.1`). Se o deploy falhar, a pipeline volta sozinha para a versão estável anterior. Detalhes e prints em [docs/ROLLBACK.md](docs/ROLLBACK.md).
